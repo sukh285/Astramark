@@ -47,7 +47,7 @@ export async function CTAButton() {
     <form action={handleClick}>
       <button
         type="submit"
-        className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition"
+        className="inline-flex items-center justify-center px-4 py-2 text-lg font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition"
       >
         {user ? "Go to Dashboard" : "Start Marking"}
       </button>
