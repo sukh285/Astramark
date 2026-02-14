@@ -6,6 +6,7 @@ import { EnvVarWarning } from "@/components/env-var-warning";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CTAButton } from "@/components/cta-button";
+import Image from "next/image";
 
 async function AuthRedirect() {
   if (!hasEnvVars) return null;
@@ -25,7 +26,6 @@ async function AuthRedirect() {
 export default function Home() {
   return (
     <>
-      {/* Suspense boundary required because createClient() uses cookies() */}
       <Suspense fallback={null}>
         <AuthRedirect />
       </Suspense>
@@ -34,9 +34,21 @@ export default function Home() {
         {/* Navigation */}
         <nav className="w-full border-b">
           <div className="max-w-5xl mx-auto flex justify-between items-center px-5 py-4">
-            <h1 className="text-xl font-semibold tracking-tight">
-              Astramark
-            </h1>
+            
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <Image 
+                src="/logo.png"       
+                alt="Astramark Logo"
+                width={32}            
+                height={32}
+                className="rounded-sm" 
+              />
+              <h1 className="text-xl font-semibold tracking-tight">
+                Astramark
+              </h1>
+            </div>
+
             <div className="flex items-center gap-4">
               <ThemeSwitcher />
               {hasEnvVars && (
@@ -61,7 +73,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Hero Content */}
             <div className="space-y-6">
               <h2 className="text-5xl md:text-7xl font-bold tracking-tight">
                 Your Bookmarks,
@@ -75,7 +86,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* CTA */}
             {hasEnvVars && (
               <div className="pt-6">
                 <Suspense

@@ -9,8 +9,17 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "AstraMark",
-  description: "Bookmark all your favorite links in one place",
+  // Title
+  title: {
+    default: "AstraMark",
+    template: "%s | AstraMark", 
+  },
+  // Description
+  description: "Bookmark all your favorite links in one place. Sync across devices in real-time.",
+  // Icons
+  icons: {
+    icon: "/icon.png", 
+  },
 };
 
 const geistSans = Geist({
