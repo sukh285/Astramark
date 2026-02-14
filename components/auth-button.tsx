@@ -1,3 +1,4 @@
+import { getSiteUrl } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -10,8 +11,7 @@ export async function AuthButton() {
     "use server";
     
     const supabase = await createClient();
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const redirectUrl = `${baseUrl}/auth/callback?next=/dashboard`;
+    const redirectUrl = `${getSiteUrl()}/auth/callback?next=/dashboard`;
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
