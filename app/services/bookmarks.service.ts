@@ -4,7 +4,7 @@ import type { Bookmark } from "@/app/types/db.types";
 
 // Bookmark Service that contains all business logic for bookmark operations
 export class BookmarkService {
-  // Create a new bookmark
+  // 1. Create a new bookmark
   static async create(params: {
     title: string;
     url: string;
@@ -52,7 +52,7 @@ export class BookmarkService {
     return data;
   }
 
-  // Fetch all bookmarks for authenticated user
+  // 2. Fetch all bookmarks for authenticated user
   static async getAll(): Promise<Bookmark[]> {
     const supabase = await createClient();
 
@@ -77,7 +77,7 @@ export class BookmarkService {
     return data || [];
   }
 
-  // Delete a bookmark by ID
+  // 3. Delete a bookmark by ID
   // RLS ensures user can only delete their own bookmarks
   static async delete(params: {
     bookmarkId: string;
@@ -98,6 +98,55 @@ export class BookmarkService {
       console.error("BookmarkService.delete Error:", error);
       throw new Error("Failed to delete bookmark");
     }
+  }
+
+  // 4. Update a bookmark
+  static async update(params: {
+    bookmarkId: string;
+    userId: string;
+    title?: string;
+    url?: string;
+  }): Promise<Bookmark> {
+    const updates: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Validation fields
+    if (params.title !== undefined) {
+      if (!params.title.trim()) {
+        throw new Error("Title cannot be empty");
+      }
+      updates.title = params.title.trim();
+    }
+
+    if (params.url !== undefined) {
+      if (!params.url.trim()) {
+        throw new Error("URL cannot be empty");
+      }
+      try {
+        new URL(params.url);
+      } catch {
+        throw new Error("Invalid URL format");
+      }
+      updates.url = params.url.trim();
+    }
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .update(updates)
+      .eq("id", params.bookmarkId)
+      // adding .eq('user_id', userId) can be a safe double-check
+      .select()
+      .single();
+
+    if (error) {
+      console.error("BookmarkService.update Error:", error);
+      throw new Error("Failed to update bookmark");
+    }
+
+    return data;
   }
 
   // Verify user is authenticated

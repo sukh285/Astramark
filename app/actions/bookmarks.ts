@@ -59,3 +59,33 @@ export async function deleteBookmark(bookmarkId: string) {
     return { error: message };
   }
 }
+
+// Server Action: Update bookmark
+export async function updateBookmark(bookmarkId: string, formData: FormData) {
+  try {
+    // 1. Authenticate
+    const user = await BookmarkService.getCurrentUser();
+
+    // 2. Extract data
+    const title = formData.get("title") as string;
+    const url = formData.get("url") as string;
+
+    // 3. Delegate to service
+    const bookmark = await BookmarkService.update({
+      bookmarkId,
+      userId: user.id,
+      title,
+      url,
+    });
+
+    // 4. Revalidate
+    revalidatePath("/"); 
+
+    return { data: bookmark, success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to update bookmark";
+    console.error("Action.updateBookmark Error:", message);
+    return { error: message };
+  }
+}
