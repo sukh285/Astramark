@@ -3,7 +3,6 @@ import { Sidebar } from "@/components/sidebar";
 
 export async function SidebarContainer() {
   const supabase = await createClient();
-  // This fetch now happens inside this component, not blocking the Layout
   const { data: { user } } = await supabase.auth.getUser();
 
   return (

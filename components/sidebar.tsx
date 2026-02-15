@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Define props to receive user data from the parent
 interface SidebarProps {
   userAvatar?: string;
   userEmail?: string;
@@ -40,11 +39,11 @@ export function Sidebar({ userAvatar, userEmail }: SidebarProps) {
       {/* 2. Middle: Vertical Brand Name */}
       <div className="flex-1 flex items-center justify-center min-h-0 overflow-hidden w-full">
         <h1 
-          className="text-primary font-black tracking-[0.3em] text-2xl select-none opacity-80 hover:opacity-100 transition-opacity whitespace-nowrap"
+          className="text-primary font-black tracking-[0.2em] text-2xl select-none opacity-80 hover:opacity-100 transition-opacity whitespace-nowrap"
           style={{ 
             writingMode: 'vertical-rl', 
             textOrientation: 'mixed', 
-            transform: 'rotate(180deg)' // Reads bottom-to-top
+            transform: 'rotate(180deg)' 
           }}
         >
           ASTRABIT
@@ -52,11 +51,11 @@ export function Sidebar({ userAvatar, userEmail }: SidebarProps) {
       </div>
 
       {/* 3. Bottom: User & Actions */}
-      <div className="shrink-0 mt-8 flex flex-col items-center gap-6 w-full">
+      <div className="shrink-0 flex flex-col items-center gap-2 w-full">
         
-        {/* User Profile (Google Image) */}
+        {/* User Profile */}
         <div 
-          className="w-10 h-10 rounded-full bg-secondary overflow-hidden border border-border relative group cursor-help shrink-0"
+          className="w-8 h-8 rounded-full bg-secondary overflow-hidden border border-border relative group cursor-help shrink-0"
           title={userEmail}
         >
           {userAvatar ? (
@@ -64,6 +63,7 @@ export function Sidebar({ userAvatar, userEmail }: SidebarProps) {
                src={userAvatar} 
                alt="Profile" 
                fill 
+               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                className="object-cover" 
              />
           ) : (
@@ -80,7 +80,7 @@ export function Sidebar({ userAvatar, userEmail }: SidebarProps) {
         <button 
           onClick={handleSignOut}
           title="Sign Out"
-          className="p-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          className="p-1 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut size={20} strokeWidth={2} />
         </button>
