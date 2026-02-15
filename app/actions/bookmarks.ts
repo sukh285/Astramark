@@ -1,12 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { BookmarkService } from "@/app/services/bookmarks.service";
 
 // Server Action: Fetch all bookmarks
-export async function getBookmarks() {
+export async function getBookmarks(userId: string) {
   try {
-    return await BookmarkService.getAll();
+    return await BookmarkService.getAll(userId);
   } catch (error) {
     console.error("Action.getBookmarks Error:", error);
     return [];
@@ -16,14 +15,10 @@ export async function getBookmarks() {
 // Server Action: Create bookmark from form data
 export async function createBookmark(formData: FormData) {
   try {
-    // 1. Authenticate
     const user = await BookmarkService.getCurrentUser();
-
-    // 2. Extract form data
     const title = formData.get("title") as string;
     const url = formData.get("url") as string;
 
-    // 3. Delegate to service
     const bookmark = await BookmarkService.create({
       title,
       url,
@@ -77,9 +72,6 @@ export async function updateBookmark(bookmarkId: string, formData: FormData) {
       title,
       url,
     });
-
-    // 4. Revalidate
-    revalidatePath("/"); 
 
     return { data: bookmark, success: true };
   } catch (error) {

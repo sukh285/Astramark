@@ -1,32 +1,34 @@
+import { SidebarContainer } from "@/components/sidebar-container";
 import { Suspense } from "react";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={<DashboardLoading />}>
-      {children}
-    </Suspense>
-  );
-}
+    <div className="flex min-h-screen bg-background text-foreground overflow-hidden">
+      
+      {/* Boundaries:
+        We wrap the fetching component in Suspense.
+        The fallback creates a visual placeholder (w-20 width) so the layout doesn't jump.
+      */}
+      <Suspense fallback={<div className="w-20 h-screen bg-card border-r border-border shrink-0" />}>
+        <SidebarContainer />
+      </Suspense>
 
-function DashboardLoading() {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="w-full border-b">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-5 py-4">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          <div className="h-10 w-20 bg-muted animate-pulse rounded" />
+      <div className="flex-1 flex flex-col min-w-0 relative h-screen transition-all">
+        <header className="h-4 w-full shrink-0" />
+        
+        <div className="flex-1 flex min-h-0 px-4 relative">
+          <main className="flex-1 bg-card rounded-2xl border border-border shadow-sm overflow-hidden relative flex flex-row">
+             {/* Note: This suspense handles the PAGE content loading 
+                (e.g. fetching bookmarks list)
+             */}
+             <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading dashboard...</div>}>
+               {children}
+             </Suspense>
+          </main>
         </div>
-      </nav>
-      <main className="flex-1 max-w-7xl mx-auto w-full px-5 py-8">
-        <div className="space-y-6">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-          <div className="h-64 border border-dashed border-border rounded-lg" />
-        </div>
-      </main>
+        
+        <footer className="h-4 w-full shrink-0" />
+      </div>
     </div>
   );
 }

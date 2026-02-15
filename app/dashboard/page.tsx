@@ -1,95 +1,67 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { AuthButton } from "@/components/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getBookmarks } from "@/app/actions/bookmarks";
 import { BookmarkList } from "@/components/bookmark-list";
 import { BookmarkForm } from "@/components/bookmark-form";
 
-async function DashboardContent() {
+export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
 
-  if (!user) {
-    return redirect("/");
-  }
+  // Get user (layout already checked auth, but we need userId for bookmarks)
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // This should never happen since layout redirects, but TypeScript safety
+  if (!user) return null;
 
-  // Fetch initial bookmarks on server
-  const initialBookmarks = await getBookmarks();
+  // Fetch bookmarks with userId
+  const initialBookmarks = await getBookmarks(user.id);
 
   return (
     <>
-      <nav className="w-full border-b">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-5 py-4">
-          <h1 className="text-xl font-semibold">Astramark</h1>
-          <div className="flex items-center gap-4">
-            <ThemeSwitcher />
-            <AuthButton />
-          </div>
-        </div>
-      </nav>
-
-      <main className="flex-1 max-w-4xl mx-auto w-full px-5 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight">
-              Your Bookmarks
-            </h2>
-            <p className="text-muted-foreground">
-              Save and organize your favorite links
+      {/* A. LEFT COLUMN: Content (Scrollable) */}
+      <div className="flex-1 flex flex-col border-r border-border/50 relative z-10 bg-card min-w-0">
+        
+        {/* Header Area */}
+        <div className="p-8 pb-6 border-b border-border/40 shrink-0">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">My Collection</h1>
+            <p className="text-sm text-muted-foreground">
+               Manage your saved links and resources.
             </p>
           </div>
-
-          {/* Add Bookmark Form */}
+          
+          {/* Add Form injected here */}
           <BookmarkForm />
-
-          {/* Bookmarks List */}
-          <BookmarkList initialBookmarks={initialBookmarks} userId={user.sub} />
         </div>
-      </main>
-    </>
-  );
-}
 
-export default function Dashboard() {
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Suspense fallback={<DashboardLoading />}>
-        <DashboardContent />
-      </Suspense>
-    </div>
-  );
-}
+        {/* Scrollable List */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide relative">
+           {/* Top Blur */}
+           <div className="sticky top-0 h-4 bg-gradient-to-b from-card to-transparent z-10 pointer-events-none" />
+           
+           <div className="px-8 pb-10">
+              <BookmarkList initialBookmarks={initialBookmarks} userId={user.id} />
+           </div>
 
-function DashboardLoading() {
-  return (
-    <>
-      <nav className="w-full border-b">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-5 py-4">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 bg-muted animate-pulse rounded-full" />
-            <div className="h-10 w-24 bg-muted animate-pulse rounded" />
-          </div>
+           {/* Bottom Blur */}
+           <div className="sticky bottom-0 h-12 bg-gradient-to-t from-card to-transparent z-10 pointer-events-none" />
         </div>
-      </nav>
-      <main className="flex-1 max-w-4xl mx-auto w-full px-5 py-8">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <div className="h-9 w-64 bg-muted animate-pulse rounded" />
-            <div className="h-5 w-80 bg-muted animate-pulse rounded" />
-          </div>
-          <div className="h-56 bg-muted animate-pulse rounded-lg" />
-          <div className="space-y-4">
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-          </div>
-        </div>
-      </main>
+      </div>
+
+      {/* B. RIGHT COLUMN: Visual Identity */}
+      <div className="w-20 md:w-32 lg:w-40 relative overflow-hidden hidden sm:flex items-center justify-center bg-card select-none shrink-0">
+         <div 
+           className="text-[60px] md:text-[80px] lg:text-[100px] font-black tracking-tighter opacity-[0.04] text-foreground pointer-events-none uppercase leading-[0.8]"
+           style={{ 
+             writingMode: 'vertical-rl', 
+             textOrientation: 'mixed',
+             transform: 'rotate(180deg)',
+             maxHeight: '100%',
+             textAlign: 'right'
+           }}
+         >
+            BOOKMARKS
+         </div>
+      </div>
     </>
   );
 }

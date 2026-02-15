@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Bookmark } from "@/app/types/db.types";
 
-
 // Bookmark Service that contains all business logic for bookmark operations
 export class BookmarkService {
   // 1. Create a new bookmark
@@ -53,20 +52,14 @@ export class BookmarkService {
   }
 
   // 2. Fetch all bookmarks for authenticated user
-  static async getAll(): Promise<Bookmark[]> {
+  // Update getAll to accept userId
+  static async getAll(userId: string): Promise<Bookmark[]> {
     const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return [];
-    }
 
     const { data, error } = await supabase
       .from("bookmarks")
       .select("*")
+      .eq("user_id", userId) // Filter by userId
       .order("created_at", { ascending: false });
 
     if (error) {
