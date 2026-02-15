@@ -2,85 +2,80 @@
 
 import { createBookmark } from "@/app/actions/bookmarks";
 import { useRef, useState } from "react";
+import { Plus, ArrowRight, Loader2 } from "lucide-react";
 
 export function BookmarkForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); // Prevent default form submission
+    
+    console.log("🟢 Form submit started");
     setIsLoading(true);
-    setError(null);
-
+    
+    const formData = new FormData(e.currentTarget);
+    
+    console.log("🟡 Calling createBookmark action...");
     const result = await createBookmark(formData);
-
-    if (result.error) {
-      setError(result.error);
-      setIsLoading(false);
-    } else {
+    console.log("🔵 Result:", result);
+    
+    if (result.success) {
       formRef.current?.reset();
-      setIsLoading(false);
+      console.log("✅ Form reset");
+    } else {
+      alert(result.error);
     }
+    
+    setIsLoading(false);
+    console.log("🔴 Form submit ended");
   }
 
   return (
-    <form
-      ref={formRef}
-      action={handleSubmit}
-      className="bg-card border border-border rounded-lg p-6 space-y-4"
-    >
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Add Bookmark</h3>
-        <p className="text-sm text-muted-foreground">
-          Save a new link to your collection
-        </p>
-      </div>
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-md p-3 text-sm">
-          {error}
+    <form ref={formRef} onSubmit={handleSubmit}>
+      <div className="flex items-center gap-2 p-2 bg-card border border-border rounded-lg hover:border-accent focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+        
+        {/* Icon */}
+        <div className="pl-1 text-muted-foreground/60">
+          <Plus size={18} />
         </div>
-      )}
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="url" className="text-sm font-medium">
-            URL
-          </label>
-          <input
-            type="url"
-            id="url"
-            name="url"
-            placeholder="https://example.com"
-            required
+        {/* Inputs */}
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+          <input 
+            name="url" 
+            type="url" 
+            required 
+            placeholder="Paste URL..." 
             disabled={isLoading}
-            className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm h-9 px-3 rounded-md focus:outline-none focus:bg-secondary/30 placeholder:text-muted-foreground/50 transition-colors disabled:opacity-50"
+          />
+          
+          <div className="hidden sm:block w-[1px] h-4 bg-border" />
+          
+          <input 
+            name="title" 
+            type="text" 
+            required 
+            placeholder="Title (e.g. Design Inspiration)" 
+            disabled={isLoading}
+            className="flex-1 bg-transparent text-sm h-9 px-3 rounded-md focus:outline-none focus:bg-secondary/30 placeholder:text-muted-foreground/50 transition-colors disabled:opacity-50"
           />
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            placeholder="My Awesome Link"
-            required
-            disabled={isLoading}
-            className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-          />
-        </div>
+        {/* Submit Button */}
+        <button 
+          type="submit" 
+          disabled={isLoading}
+          className="mr-1 p-2 rounded-md bg-secondary/50 border border-border hover:bg-accent hover:border-accent-foreground/10 text-muted-foreground hover:text-foreground transition-all disabled:opacity-50 disabled:hover:bg-secondary/50"
+        >
+          {isLoading ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <ArrowRight size={16} />
+          )}
+        </button>
       </div>
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-      >
-        {isLoading ? "Adding..." : "Add Bookmark"}
-      </button>
     </form>
   );
 }
