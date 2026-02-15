@@ -1,152 +1,84 @@
 "use client";
 
 import { deleteBookmark, updateBookmark } from "@/app/actions/bookmarks";
-import type { Bookmark } from "@/app/types/db.types";
-import Link from "next/link";
+import { Bookmark } from "@/app/types/db.types";
+import { Copy, Info, Trash2, Check, Edit2, ArrowUpRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function BookmarkItem({ bookmark }: { bookmark: Bookmark }) {
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  // 1. Edit Mode State
+  const [isHovered, setIsHovered] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   
-  // 2. Form State (initialize with current props)
   const [title, setTitle] = useState(bookmark.title);
   const [url, setUrl] = useState(bookmark.url);
 
-  // Sync local state if realtime updates the prop while we aren't editing
   useEffect(() => {
-    if (!isEditing) {
-      setTitle(bookmark.title);
-      setUrl(bookmark.url);
-    }
+    if (!isEditing) { setTitle(bookmark.title); setUrl(bookmark.url); }
   }, [bookmark, isEditing]);
 
-  async function handleDelete() {
-    if (!confirm("Are you sure you want to delete this bookmark?")) return;
-    setIsDeleting(true);
-    const result = await deleteBookmark(bookmark.id);
-    if (result.error) {
-      alert(result.error);
-      setIsDeleting(false);
-    }
-  }
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(bookmark.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-  async function handleSave() {
-    setIsSaving(true);
-    
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Delete "${bookmark.title}"?`)) await deleteBookmark(bookmark.id);
+  };
+
+  const handleSave = async () => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("url", url);
-
     const result = await updateBookmark(bookmark.id, formData);
+    if (!result.error) setIsEditing(false);
+  };
 
-    setIsSaving(false);
-    if (result.error) {
-      alert(result.error);
-    } else {
-      setIsEditing(false);
-    }
-  }
-
-  // Format date
-  const formattedDate = new Date(bookmark.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
-  // EDIT MODE
   if (isEditing) {
     return (
-      <div className="bg-card border border-accent/50 rounded-lg p-4 shadow-sm">
+      <div className="bg-secondary/10 border border-primary/20 rounded-lg p-4 my-2 animate-in fade-in zoom-in-95">
         <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground ml-1">Title</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-2 py-1 bg-background border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground ml-1">URL</label>
-            <input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full px-2 py-1 bg-background border border-input rounded focus:outline-none focus:ring-2 focus:ring-ring text-sm font-mono text-muted-foreground"
-            />
-          </div>
-          
-          <div className="flex gap-2 justify-end pt-2">
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                setTitle(bookmark.title); // Reset on cancel
-                setUrl(bookmark.url);
-              }}
-              disabled={isSaving}
-              className="px-3 py-1 text-xs font-medium hover:bg-muted rounded transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-3 py-1 text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 rounded transition disabled:opacity-50"
-            >
-              {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-1.5 bg-background border border-input rounded text-sm" autoFocus />
+          <input value={url} onChange={(e) => setUrl(e.target.value)} className="w-full px-3 py-1.5 bg-background border border-input rounded text-sm font-mono text-muted-foreground" />
+          <div className="flex gap-2 justify-end pt-1">
+            <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 text-xs font-bold text-muted-foreground">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-xs font-bold bg-primary text-primary-foreground rounded">Save</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // DISPLAY MODE (Default)
   return (
-    <div className="group bg-card border border-border rounded-lg p-4 hover:border-accent transition">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <Link
-            href={bookmark.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <h3 className="font-medium text-foreground hover:text-accent transition truncate">
-              {bookmark.title}
-            </h3>
-            <p className="text-sm text-muted-foreground truncate mt-1">
-              {bookmark.url}
-            </p>
-          </Link>
-          <p className="text-xs text-muted-foreground mt-2">
-            Added {formattedDate}
-          </p>
+    <div 
+      className="group border-b border-border hover:bg-secondary/30 transition-colors"
+      onMouseEnter={() => setIsHovered(true)} 
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div onClick={() => window.open(bookmark.url, "_blank")} className="relative flex items-center justify-between py-3 px-2 cursor-pointer">
+        <div className="flex-1 min-w-0 pr-4 flex items-center gap-2">
+          <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate max-w-md">{bookmark.title}</h3>
+          <ArrowUpRight size={12} className="text-muted-foreground/50 group-hover:text-primary/50" />
         </div>
 
-        <div className="flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => setIsEditing(true)}
-            disabled={isDeleting}
-            className="px-3 py-1.5 text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md transition"
-          >
-            Edit
-          </button>
-          
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="px-3 py-1.5 text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-md transition disabled:opacity-50"
-          >
-            {isDeleting ? "..." : "Delete"}
-          </button>
+        <div className={`flex items-center gap-1 transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0"}`} onClick={(e) => e.stopPropagation()}>
+          <button onClick={handleCopy} className={`p-1.5 rounded-full border border-transparent hover:border-border transition-all ${copied ? "text-green-500" : "text-muted-foreground hover:text-foreground"}`}><Check size={14} /></button>
+          <button onClick={() => setShowInfo(!showInfo)} className={`p-1.5 rounded-full border border-transparent hover:border-border transition-all ${showInfo ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}><Info size={14} /></button>
+          <button onClick={() => setIsEditing(true)} className="p-1.5 rounded-full border border-transparent hover:border-border text-muted-foreground hover:text-foreground transition-all"><Edit2 size={14} /></button>
+          <button onClick={handleDelete} className="p-1.5 rounded-full border border-transparent hover:border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10"><Trash2 size={14} /></button>
         </div>
       </div>
+
+      {showInfo && (
+        <div className="px-2 pb-3 text-[10px] text-muted-foreground flex flex-col gap-1 animate-in slide-in-from-top-1 font-mono">
+          <p className="truncate hover:text-primary select-all">{bookmark.url}</p>
+          <p className="opacity-60">{new Date(bookmark.created_at).toLocaleDateString()}</p>
+        </div>
+      )}
     </div>
   );
 }
